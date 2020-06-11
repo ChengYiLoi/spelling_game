@@ -25,6 +25,7 @@ class GameMaster with ChangeNotifier {
             'Rhubarb',
             'Sapote, Mamey',
             'Java-Plum'
+            
           ];
           renameTextMap = {
             'Pitaya (Dragonfruit)': 'Dragonfruit',
@@ -69,9 +70,9 @@ class GameMaster with ChangeNotifier {
   Future <List<ImageCard>> createImageWidgets() async {
     print('create image widgets');
     List<ImageCard> widgets = [];
-    textImageMap.forEach((text, url) {
- 
-      widgets.add(ImageCard(text, url));
+    textImageMap.forEach((text, url){
+      Image image = Image.network(url);
+      widgets.add(ImageCard(text, image));
     });
     return widgets;
   }
@@ -86,5 +87,6 @@ class GameMaster with ChangeNotifier {
     });
     return letterWidgetsArray;
   }
+  
   
 }

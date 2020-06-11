@@ -1,24 +1,22 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 
 class ImageCard extends StatelessWidget {
-  final String url;
+  final Image image;
   final String name;
-  ImageCard(this.name, this.url);
+  ImageCard(this.name, this.image);
 
   getName() => name;
 
   
   @override
   Widget build(BuildContext context) {
-  
     return Card(
-        child: Column(
+        child:  Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Expanded(child: CachedNetworkImage(imageUrl: url)),
+            Expanded(child: image,)
           ],
         ),
       );

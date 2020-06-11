@@ -13,5 +13,7 @@ color: Colors.blueGrey,
 borderRadius: BorderRadius.circular(10)
 );
 
+Duration carouselDurarion = Duration(milliseconds: 1000);
+Curve carouselCurve = Curves.ease;
 
 

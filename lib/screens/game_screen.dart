@@ -1,7 +1,5 @@
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:education_calculator/classes/alphabets.dart';
 import 'package:education_calculator/classes/game_master.dart';
-
 import 'package:education_calculator/components/image_card.dart';
 import 'package:education_calculator/components/keyboard.dart';
 import 'package:education_calculator/components/letter_button.dart';
@@ -11,10 +9,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/services.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 
 final String speaker = 'images/speaker.svg';
 final String eraser = 'images/eraser.svg';
 final String next = 'images/next.svg';
+final String previous = 'images/previous.svg';
 
 class GameScreen extends StatefulWidget {
   GameScreen({Key key, this.title}) : super(key: key);
@@ -33,43 +33,36 @@ class _GameScreenState extends State<GameScreen> {
   List<ImageCard> imageWidgets;
   String userInput;
   CarouselController carouselController;
+
   bool isHyphen;
 
   @override
   void initState() {
     SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft]);
     carouselController = CarouselController();
+    imageIndex = 0;
+    letterInputposition = 0;
     loadGameData();
     initializeKeyboard();
     userInput = '';
     isHyphen = false;
-    
+
     super.initState();
   }
 
-
   void loadGameData() async {
-    print('load game data');
+    print('loading game data');
     gameMaster = GameMaster();
-    imageIndex = 0;
-    letterInputposition = 0;
+
     await gameMaster.initializeGame(widget.title);
     imageWidgets = await gameMaster.createImageWidgets();
-
+    preCacheImages(imageWidgets);
     setState(() {
       print('set state called');
-     
       letterPlaceholders = gameMaster
           .updateLetterPlaceholders(imageWidgets[imageIndex].getName());
     });
   }
-  // cacheImages() async {
-  //   imageWidgets.forEach((imageWidget) {
-  //     precacheImage(NetworkImage(imageWidget.url), context);
-  //   });
-  // }
-
-
 
   updateLetterPlaceholder(String userInput) {
     setState(() {
@@ -78,9 +71,17 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
+  preCacheImages(List<ImageCard> imageWidgets) {
+    print('cache images');
+    imageWidgets.forEach((imageWidget) {
+      precacheImage(imageWidget.image.image, context);
+    });
+  }
+
   initializeKeyboard() {
+    print('initializing keyboard');
     Alphabets alphabets = Alphabets();
-    List<LetterButton> alphabetKeysArray = alphabets.initializeAlphabetKeys();
+    List<LetterButton> alphabetKeysArray = alphabets.createAlphabetKeys();
     List<Widget> keyboardArray = [];
     alphabetKeysArray.forEach((letterButtonWidget) {
       keyboardArray.add(GestureDetector(
@@ -106,10 +107,9 @@ class _GameScreenState extends State<GameScreen> {
           if (userInput == imageWidgets[imageIndex].getName()) {
             print('correct');
             userInput = '';
+            letterInputposition = 0;
             carouselController.nextPage(
-                duration: Duration(milliseconds: 1000), curve: Curves.ease);
-
-            imageIndex++;
+                duration: carouselDurarion, curve: carouselCurve);
           }
         },
         child: letterButtonWidget,
@@ -139,7 +139,7 @@ class _GameScreenState extends State<GameScreen> {
         });
   }
 
-  _speak(text) {
+  speak(text) {
     FlutterTts flutterTts = FlutterTts();
     flutterTts.speak(text);
   }
@@ -157,7 +157,6 @@ class _GameScreenState extends State<GameScreen> {
 
   @override
   Widget build(BuildContext context) {
-   
     return SafeArea(
       child: Scaffold(
           body: Container(
@@ -168,37 +167,34 @@ class _GameScreenState extends State<GameScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.only(top: 0.0),
-                    child: Stack(
-                      children: <Widget>[
-                        CarouselSlider(
-                          items: imageWidgets,
-                          carouselController: carouselController,
-                          options: CarouselOptions(
-                            height: MediaQuery.of(context).size.height * 0.25,
-                            viewportFraction: 0.6,
-                            initialPage: imageIndex,
-                            enableInfiniteScroll: true,
-                            enlargeCenterPage: true,
-                            onPageChanged: (index, __) {
-                              print('page change called');
-                              imageIndex = index;
-                              setState(() {
-                                letterInputposition = 0;
-                                letterPlaceholders =
-                                    gameMaster.updateLetterPlaceholders(
-                                        imageWidgets[imageIndex].getName());
-                              });
-                            },
-                          ),
+                  Stack(
+                    children: <Widget>[
+                      CarouselSlider(
+                        items: imageWidgets,
+                        carouselController: carouselController,
+                        options: CarouselOptions(
+                          height: MediaQuery.of(context).size.height * 0.25,
+                          viewportFraction: 0.6,
+                          initialPage: imageIndex,
+                          enlargeCenterPage: true,
+                          onPageChanged: (index, __) {
+                            print('page change called');
+                            imageIndex = index;
+                            setState(() {
+                              speak(imageWidgets[imageIndex].getName());
+                              letterPlaceholders =
+                                  gameMaster.updateLetterPlaceholders(
+                                      imageWidgets[imageIndex].getName());
+                            });
+                          },
                         ),
-                        // Positioned.fill(
-                        //     child: Container(
-                        //   color: Colors.transparent,
-                        // ),),
-                      ],
-                    ),
+                      ),
+                      Positioned.fill(
+                        child: Container(
+                          color: Colors.transparent,
+                        ),
+                      ),
+                    ],
                   ),
                   Expanded(
                     child: Padding(
@@ -233,7 +229,7 @@ class _GameScreenState extends State<GameScreen> {
                                     borderRadius: BorderRadius.circular(10)),
                                 color: Colors.blueGrey,
                                 onPressed: () {
-                                  _speak(imageWidgets[imageIndex].getName());
+                                  speak(imageWidgets[imageIndex].getName());
                                 },
                                 child: Padding(
                                   padding:
@@ -264,20 +260,32 @@ class _GameScreenState extends State<GameScreen> {
                             ),
                           ),
                           Positioned(
-                            top: 20,
-                            right: 20,
-                            child: Container(
-                              width: 120,
-                              height: 50,
-                              child: RaisedButton(
-                                onPressed: () {},
-                                elevation: 5,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
+                            top: 15,
+                            right: 0,
+                            child: Row(
+                              children: <Widget>[
+                                GestureDetector(
+                                  onTap: () => carouselController.previousPage(
+                                      duration: carouselDurarion,
+                                      curve: carouselCurve),
+                                  child: SizedBox(
+                                    width: 70,
+                                    height: 50,
+                                    child: SvgPicture.asset(previous),
+                                  ),
                                 ),
-                                color: Colors.blueGrey,
-                                child: SvgPicture.asset(next),
-                              ),
+                                GestureDetector(
+                                  onTap: () => carouselController.nextPage(
+                                    duration: carouselDurarion,
+                                    curve: carouselCurve
+                                  ),
+                                  child: SizedBox(
+                                    width: 70,
+                                    height: 50,
+                                    child: SvgPicture.asset(next),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           Positioned(
