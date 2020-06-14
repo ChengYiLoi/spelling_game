@@ -91,7 +91,7 @@ class CategoryCard extends StatelessWidget {
               child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(category),
-            //TODO add icon
+          
           )),
         ),
       ),

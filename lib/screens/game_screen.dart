@@ -18,7 +18,6 @@ import 'package:provider/provider.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:education_calculator/components/keyboard_action_button.dart';
 
-
 final String speaker = 'images/speaker.svg';
 final String eraser = 'images/eraser.svg';
 final String next = 'images/next.svg';
@@ -293,6 +292,7 @@ class _GameScreenState extends State<GameScreen> {
                               onPageChanged: (index, __) {
                                 print('page change called');
                                 imageIndex = index;
+                                letterInputposition = 0;
                                 setState(() {
                                   speak(imageWidgets[imageIndex].getName());
                                   letterPlaceholders =
@@ -366,9 +366,11 @@ class _GameScreenState extends State<GameScreen> {
                                       ),
                                     ),
                                     GestureDetector(
-                                      onTap: () => carouselController.nextPage(
-                                          duration: carouselDurarion,
-                                          curve: carouselCurve),
+                                      onTap: () {
+                                        carouselController.nextPage(
+                                            duration: carouselDurarion,
+                                            curve: carouselCurve);
+                                      },
                                       child: SizedBox(
                                         width: 70,
                                         height: 50,

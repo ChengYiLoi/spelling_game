@@ -4,7 +4,6 @@ import 'package:education_calculator/components/letter_placeholder.dart';
 import 'package:flutter/material.dart';
 
 class GameMaster with ChangeNotifier {
-
   Map<String, String> textImageMap = {};
 
   initializeGame(category) async {
@@ -14,7 +13,7 @@ class GameMaster with ChangeNotifier {
     Map<String, String> renameTextMap;
 
     Network network = Network();
-
+    List data;
     switch (category) {
       case 'Fruits':
         {
@@ -25,7 +24,6 @@ class GameMaster with ChangeNotifier {
             'Rhubarb',
             'Sapote, Mamey',
             'Java-Plum'
-            
           ];
           renameTextMap = {
             'Pitaya (Dragonfruit)': 'Dragonfruit',
@@ -33,20 +31,31 @@ class GameMaster with ChangeNotifier {
             'Date Fruit': 'Date',
             'Honeydew Melon': 'Honeydew',
             'Persimmon – Japanese': 'Persimmon',
-            'Passion Fruit' : 'Passion-Fruit',
-            'Peaches' : 'Peach',
-            'Plums' : 'Plum',
-            'Prickly Pear' : 'Prickly-Pear'
+            'Peaches': 'Peach',
+            'Plums': 'Plum',
           };
-          List data = await network.getData(
+          data = await network.getData(
               'https://www.halfyourplate.ca/fruits-and-veggies/fruits-a-z/',
-              
               'ul.fv-list > li > a',
               'ul.fv-list > li > div > span > a > img');
-          texts = data[0];
-          images = data[1];
+         
         }
+        break;
+      case "Countries":
+        {
+          removeTextArray = [
+          
+          ];
+          renameTextMap = {
+           
+          };
+          // data = await network.getData();
+          
+        }
+        break;
     }
+     texts = data[0];
+          images = data[1];
     filter(texts, images, removeTextArray, renameTextMap);
   }
 
@@ -55,22 +64,29 @@ class GameMaster with ChangeNotifier {
     List<String> filteredNames = [];
 
     texts.forEach((text) {
-      if (renameTextMap.keys.contains(text.innerHtml)) {
-        filteredNames.add(renameTextMap[text.innerHtml]);
-      } else {
-        filteredNames.add(text.innerHtml);
+      String innerText = text.innerHtml;
+
+      if (renameTextMap.keys.contains(innerText)) {
+        innerText = renameTextMap[innerText];
       }
+
+      filteredNames.add(innerText);
     });
     for (var i = 0; i < texts.length; i++) {
-      textImageMap[filteredNames[i]] = images[i].attributes['src'];
+      String key = filteredNames[i];
+      if (!removeTextArray.contains(key)) {
+        if(key.contains(' ')){
+          key = key.replaceAll(' ', '-');
+        }
+        textImageMap[key] = images[i].attributes['src'];
+      }
     }
-    textImageMap.removeWhere((key, value) => removeTextArray.contains(key));
   }
 
-  Future <List<ImageCard>> createImageWidgets() async {
+  Future<List<ImageCard>> createImageWidgets() async {
     print('create image widgets');
     List<ImageCard> widgets = [];
-    textImageMap.forEach((text, url){
+    textImageMap.forEach((text, url) {
       Image image = Image.network(url);
       widgets.add(ImageCard(text, image));
     });
@@ -87,6 +103,4 @@ class GameMaster with ChangeNotifier {
     });
     return letterWidgetsArray;
   }
-  
-  
 }
