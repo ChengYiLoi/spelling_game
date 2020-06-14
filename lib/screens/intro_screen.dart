@@ -11,7 +11,7 @@ class IntroScreen extends StatelessWidget {
         body: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text('WORD GAME', style: mainTitleStyle,),
+            Text('SPELLING WIZ', style: mainTitleStyle,),
             SizedBox(height: 30),
             Center(
                 child: RaisedButton(
