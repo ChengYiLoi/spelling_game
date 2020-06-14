@@ -38,25 +38,95 @@ class GameMaster with ChangeNotifier {
               'https://www.halfyourplate.ca/fruits-and-veggies/fruits-a-z/',
               'ul.fv-list > li > a',
               'ul.fv-list > li > div > span > a > img');
-         
+          texts = data[0];
+          images = convertLinkToString("Fruits", data[1]);
         }
         break;
       case "Countries":
         {
           removeTextArray = [
-          
+            'Åland Islands',
+            'American Samoa',
+            'Anguila',
+            'Antigua and Barbuda',
+            'Bosnia and Herzegovina',
+            'Bouvet Island',
+            'British Indian Ocean Territory',
+            'Burkina Faso',
+            'Caribbean Netherlands',
+            'Cocos Islands',
+            'Republic of the Congo',
+            'DR Congo',
+            "Côte d'Ivoire",
+            'French Southern and Antarctic Lands',
+            'Guadeloupe',
+            'Heard Island and McDonald Islands',
+            'Isle of Man',
+            'Marshall Islands',
+            'Martinique',
+            'Mayotte',
+            'Réunion',
+            'Saint Barthélemy',
+            'Saint Helena, Ascension and Tristan da Cunha',
+            'Saint Kitts and Nevis',
+            'Saint Pierre and Miquelon',
+            'Saint Vincent and the Grenadines',
+            'São Tomé and Príncipe',
+            'Svalbard and Jan Mayen',
+            'Trinidad and Tobago',
+            'Turks and Caicos Islands',
+            'United States Minor Outlying Islands',
+            'United States Virgin Islands',
+            'British Virgin Islands',
+            'Wallis and Futuna',
+            
           ];
-          renameTextMap = {
-           
-          };
-          // data = await network.getData();
-          
+          renameTextMap = {};
+          data = await network.getData(
+              'https://flagpedia.net/index',
+              'div.flag-container > ul.flag-grid > li > a > span',
+              'div.flag-container > ul.flag-grid > li > a > picture > img');
+
+          texts = data[0];
+          images = convertLinkToString("Countries", data[1]);
         }
         break;
     }
-     texts = data[0];
-          images = data[1];
+
     filter(texts, images, removeTextArray, renameTextMap);
+  }
+
+  convertLinkToString(String type, List imageLinks) {
+    List result = [];
+    switch (type) {
+      case 'Fruits':
+        {
+          imageLinks.forEach((imageLink) {
+            result.add(imageLink.attributes['src']);
+          });
+        }
+        break;
+      case 'Countries':
+        {
+          imageLinks.forEach((imageLink) {
+            result.add('https://flagpedia.net/' + imageLink.attributes['src']);
+          });
+        }
+    }
+
+    return result;
+  }
+
+  filterCountries(List texts) {
+    List result = [];
+    texts.forEach((text) {
+      print(text.innerHtml);
+      // if(!text.innerHtml.contains('<')){
+      //   result.add(text);
+      // }
+    });
+    print(result);
+    return result;
   }
 
   filter(List texts, List images, List removeTextArray,
@@ -75,10 +145,10 @@ class GameMaster with ChangeNotifier {
     for (var i = 0; i < texts.length; i++) {
       String key = filteredNames[i];
       if (!removeTextArray.contains(key)) {
-        if(key.contains(' ')){
+        if (key.contains(' ')) {
           key = key.replaceAll(' ', '-');
         }
-        textImageMap[key] = images[i].attributes['src'];
+        textImageMap[key] = images[i];
       }
     }
   }
