@@ -27,13 +27,21 @@ class Network {
     http.Response response = await http.get(url);
     if (response.statusCode == 200) {
       print('data retrieved');
+      List textArray = [];
+      List imageArray = [];
       List texts = [];
       List images = [];
       try {
         dom.Document document = parser.parse(response.body);
-        texts = document.getElementsByTagName(textElementLocation);
-        images = document.getElementsByTagName(imageElementLocation);
-       
+        textArray = document.getElementsByTagName(textElementLocation);
+        imageArray = document.getElementsByTagName(imageElementLocation);
+        textArray.forEach((element) {
+          texts.add(element.innerHtml);
+        });
+        imageArray.forEach((element) {
+          images.add(element.attributes['src']);
+        });
+
 
       
         return [texts, images];

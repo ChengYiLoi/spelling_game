@@ -1,19 +1,21 @@
+import 'package:education_calculator/classes/filter.dart';
 import 'package:education_calculator/classes/network.dart';
 import 'package:education_calculator/components/image_card.dart';
 import 'package:education_calculator/components/letter_placeholder.dart';
 import 'package:flutter/material.dart';
 
 class GameMaster with ChangeNotifier {
-  Map<String, String> textImageMap = {};
+  Map filteredTextImage;
 
   initializeGame(category) async {
-    List texts;
-    List images;
+    List textArray;
+    List imageArray;
     List removeTextArray;
-    Map<String, String> renameTextMap;
+    Map renameTextMap;
 
     Network network = Network();
     List data;
+    Filter filter;
     switch (category) {
       case 'Fruits':
         {
@@ -38,8 +40,10 @@ class GameMaster with ChangeNotifier {
               'https://www.halfyourplate.ca/fruits-and-veggies/fruits-a-z/',
               'ul.fv-list > li > a',
               'ul.fv-list > li > div > span > a > img');
-          texts = data[0];
-          images = convertLinkToString("Fruits", data[1]);
+          filter = Filter(removeTextArray, renameTextMap);
+          textArray = data[0];
+          imageArray = data[1];
+          filteredTextImage = filter.filter(textArray, imageArray);
         }
         break;
       case "Countries":
@@ -79,84 +83,28 @@ class GameMaster with ChangeNotifier {
             'United States Virgin Islands',
             'British Virgin Islands',
             'Wallis and Futuna',
-            
           ];
           renameTextMap = {};
+          filter = Filter(removeTextArray, renameTextMap);
           data = await network.getData(
               'https://flagpedia.net/index',
               'div.flag-container > ul.flag-grid > li > a > span',
               'div.flag-container > ul.flag-grid > li > a > picture > img');
+          textArray = data[0];
+          imageArray = filter.addFullLink('https://flagpedia.net/', data[1]);
+          filteredTextImage = filter.filter(textArray, imageArray);
 
-          texts = data[0];
-          images = convertLinkToString("Countries", data[1]);
+
         }
         break;
     }
 
-    filter(texts, images, removeTextArray, renameTextMap);
-  }
-
-  convertLinkToString(String type, List imageLinks) {
-    List result = [];
-    switch (type) {
-      case 'Fruits':
-        {
-          imageLinks.forEach((imageLink) {
-            result.add(imageLink.attributes['src']);
-          });
-        }
-        break;
-      case 'Countries':
-        {
-          imageLinks.forEach((imageLink) {
-            result.add('https://flagpedia.net/' + imageLink.attributes['src']);
-          });
-        }
-    }
-
-    return result;
-  }
-
-  filterCountries(List texts) {
-    List result = [];
-    texts.forEach((text) {
-      print(text.innerHtml);
-      // if(!text.innerHtml.contains('<')){
-      //   result.add(text);
-      // }
-    });
-    print(result);
-    return result;
-  }
-
-  filter(List texts, List images, List removeTextArray,
-      Map<String, String> renameTextMap) {
-    List<String> filteredNames = [];
-
-    texts.forEach((text) {
-      String innerText = text.innerHtml;
-
-      if (renameTextMap.keys.contains(innerText)) {
-        innerText = renameTextMap[innerText];
-      }
-
-      filteredNames.add(innerText);
-    });
-    for (var i = 0; i < texts.length; i++) {
-      String key = filteredNames[i];
-      if (!removeTextArray.contains(key)) {
-        if (key.contains(' ')) {
-          key = key.replaceAll(' ', '-');
-        }
-        textImageMap[key] = images[i];
-      }
-    }
   }
 
   Future<List<ImageCard>> createImageWidgets() async {
     print('create image widgets');
     List<ImageCard> widgets = [];
-    textImageMap.forEach((text, url) {
+    filteredTextImage.forEach((text, url) {
       Image image = Image.network(url);
       widgets.add(ImageCard(text, image));
     });
